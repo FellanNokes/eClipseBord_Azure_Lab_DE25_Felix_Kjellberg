@@ -1,5 +1,4 @@
 import streamlit as st
-import matplotlib.pyplot as plt
 import pandas as pd
 import pydeck as pdk
 import httpx
@@ -12,9 +11,9 @@ BASE_URL = os.getenv("BACKEND_URL", "http://127.0.0.1:8000")
 
 def main():
     st.markdown("# SolarEclipse")
-    st.write(BASE_URL)
+    st.write("Explore historical and upcoming solar eclipses. Filter by year, see where they occur on Earth, and how strong they are.")
 
-    solar = httpx.get(f"{BASE_URL}/eclipse/solar", timeout = 30).json()
+    solar = httpx.get(f"{BASE_URL}/eclipse/solar", timeout=30).json()
     df = pd.DataFrame(solar)
 
     df_filtered = year_filter(df)
@@ -24,11 +23,20 @@ def main():
     col2.metric("Most common type", df_filtered["eclipse_type"].value_counts().idxmax())
     col3.metric("Mean magnitude", round(df_filtered["eclipse_magnitude"].mean(), 2))
 
-    st.dataframe(df_filtered)
+    st.subheader("Where eclipses occur")
+    st.caption("Each point is one eclipse. Hover for date, time and magnitude.")
     show_eclipse_map(df_filtered)
+
+    st.subheader("Eclipse types")
+    st.caption("P = Partial, T = Total, A = Annular, H = Hybrid")
     show_eclipse_type_chart(df_filtered)
+
+    st.subheader("Path width distribution")
+    st.caption("Width of the shadow path on the ground, only applies to total/annular/hybrid eclipses")
     show_path_width_chart(df_filtered)
 
+    st.subheader("Raw data")
+    st.dataframe(df_filtered)
 
 def show_eclipse_type_chart(df):
     counts = df["eclipse_type"].value_counts()
